@@ -14,12 +14,8 @@ SENSORS = {
     "coil_temperature": ("PUB_WH.CoilTemp", "°C"),
     "suction_temperature": ("PUB_WH.SuctionTemp", "°C"),
  
-    "timer1_on_time": ("PRI_RE_WH.Timer1OnTime", None),
-    "timer1_off_time": ("PRI_RE_WH.Timer1OffTime", None),
-    "timer2_on_time": ("PRI_RE_WH.Timer2OnTime", None),
-    "timer2_off_time": ("PRI_RE_WH.Timer2OffTime", None)
-}
 
+}
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up iStore sensors."""
