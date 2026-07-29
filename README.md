@@ -1,10 +1,18 @@
-# iStore Heat Pump – Home Assistant Custom Integration
 
-A Home Assistant custom integration for iStore Hot Water System (R290).
-Provides full monitoring + control using the official iStore API. This integration can only be used with the iStore Heat Pumps system that has already fitted in the wifi module, and able to connect with the Univers EMS mobile app. Most iStore Hot Water System that installed posted November 2025 should comes with the wifi module. 
+# iStore Heat Pump (UNIVERS Cloud)
+
+![release](https://img.shields.io/github/v/release/kungbernard/istore-ha?style=flat-square&color=green)
+![HACS](https://img.shields.io/badge/HACS-Custom-orange?style=flat-square)
+![maintained](https://img.shields.io/badge/maintained-yes-brightgreen?style=flat-square)
+![commit activity](https://img.shields.io/github/commit-activity/y/kungbernard/istore-ha?style=flat-square)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
+## A Home Assistant custom integration for iStore Hot Water System (R290).
+Provides full monitoring + control using the official iStore API, by polling the UNIVERS cloud portal. This integration can only be used with the iStore Heat Pumps system that has already fitted in the WiFi module, and able to connect with the UNIVERS EMS mobile app. Most iStore Hot Water System that installed posted November 2025 should come with the WiFi module. 
 
 ### Sample of Home Assistant Dashboard
-<img src="images/dashboard.png" height="400">
+<img src="images/dashboard.png" height="600">
 
 
 ## Features
@@ -35,14 +43,26 @@ Provides full monitoring + control using the official iStore API. This integrati
 
 ## Installation
 
-### Manual Install
+### HACS (Recommended)
 
-1. Copy the **istore_heatpump** folder into:
-/config/custom_components/istore_heatpump/
 
-2. Restart Home Assistant
+The [Home Assistant Community Store (HACS)](https://www.hacs.xyz/) is a custom integration that provides a UI to manage custom elements such as the iStore 290L Heat Pump in Home Assistant.
+You first need to [install and configure](https://www.hacs.xyz/docs/use/) it before following these instructions below.
 
-3. Go to:
+1. In Home Assistant open **HACS → Frontend**
+2. Click the **⋮** menu → **Custom repositories**
+3. Add [https://github.com/kungbernard/istore-ha](https://github.com/kungbernard/istore-ha) with category **Integration**
+4. Search for **iStore Heat Pump** and click **Download**
+5. Restart Home Assistant
+
+
+### Manual
+1. Download the latest `.zip` from the [Releases](https://github.com/kungbernard/istore-ha/releases) page
+2. Extract and copy `custom_components/sigen` into your HA `custom_components/` folder
+3. Restart Home Assistant
+
+
+4. Go to:
 Settings → Devices & Services → Add Integration → “iStore Heat Pump”
 
 ---
@@ -65,22 +85,27 @@ To acquire the above parameters, please follow the following steps:
 2. Right click on the web page (any white space), then click "Inspect", this opens the Developer Console
 
 3. Go to "Network" tab in the Developer Console, then check the "Preserve log" box
+   
 ![Step 3](images/step3.png)
 
 4. Login using the same credential as the Univers EMS mobile app where you have setup to control the iStore R290 hot water system
 
 5. After login to iStore, navigate to "Device Monitoring" on the left menu, the click on "Device Type" drop down, and choose "Water Heater"
+   
 ![Step 5](images/step5.png)
 
 6. Find the "asset-hierarchy" in the list below (in the Network tab of Developer Console) and click on it. Then select the "Response" tab on the right. Check on the json data where it should has "Res_WaterHeater", and under attributes, there's "mdmId" and "parentId". These are the mdm_id and parent_id. Note: if the asset-hierarchy doesn't have the mdmId and parentId, just refresh the web page and try again.
+   
 ![Step 6](images/step6.png)
 
 7. Click on "Application" tab on the top of the Developer Console, then expand "Local storage" -> "https://home.istore.net.au", and find the "access_token_key" on the right hand side list, the key should looks like APP_PORTAL_X_XXXXXXXXXX, this is the access_token.
+    
 ![Step 7](images/step7.png)
 
 ### Please do not log out from iStore website, you can simply close the web page / web browser. If you log out, the access token will no longer be valid
 
 8. After acquire all the 3 parameters, you can now "Add Integration" in Home Assistant and add the iStore Heat Pump custom component using the 3 parameters.
+   
 ![Step 8](images/step8.png)
 
 
