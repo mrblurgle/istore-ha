@@ -58,7 +58,7 @@ You first need to [install and configure](https://www.hacs.xyz/docs/use/) it bef
 
 ### Manual
 1. Download the latest `.zip` from the [Releases](https://github.com/kungbernard/istore-ha/releases) page
-2. Extract and copy `custom_components/sigen` into your HA `custom_components/` folder
+2. Extract and copy `custom_components/istore-ha` into your HA `custom_components/` folder
 3. Restart Home Assistant
 
 
