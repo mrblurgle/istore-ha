@@ -1,7 +1,7 @@
 {
   "domain": "istore_heatpump",
   "name": "iStore Heat Pump",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "documentation": "https://git.drunkrhin0.au/drunkrhin0/istore-ha",
   "requirements": ["cryptography>=42.0.4"],
   "codeowners": [],

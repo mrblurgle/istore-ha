@@ -70,6 +70,16 @@ That's it. The integration automatically discovers your device, manages session 
 
 After setup, you can configure thermodynamic calculation parameters. In Home Assistant, go to **Settings → Devices & Services → iStore Heat Pump → Configure**.
 
+### Changing your login (reconfigure / re-authenticate)
+
+- **Reconfigure:** **Settings → Devices & Services → iStore Heat Pump → ⋮ → Reconfigure** to change the username or password without removing the integration.
+- **Re-authenticate:** if the stored password stops working, Home Assistant shows a *Re-authenticate* prompt; enter the new password there. Entities and history are kept.
+- **Session expiry / internet outages:** when iStore expires the session (HTTP 401, or HTTP 200 with `{"code": 30000, "msg": "please sign in"}`) the integration logs in again and retries once. If the internet is down, entities become unavailable and polling continues; they recover by themselves when the connection returns.
+
+### Upgrading from v1 (access token setup)
+
+Existing v1 entries are migrated in place: the entry, device and entities are kept, and Home Assistant immediately asks you to re-authenticate with your iStore username and password. v1 entity IDs (including the `text.istore_timer*` timer text entities and `binary_sensor.istore_running_state`) are kept.
+
 | Parameter | Default | What to set |
 |---|---|---|
 | Cold Water Temp | 15°C | Your mains cold water temperature. Run the cold tap for 30 seconds and measure. Australian mains water ranges 10–20°C depending on season and location. Perth averages ~17°C. A 5°C error changes hot water estimates by ~10%, so defaults are fine if you're unsure. |
@@ -149,7 +159,7 @@ If you don't know any of these values, leave the defaults. The calculated sensor
 - Commands take up to 15 seconds to take effect (API latency), then a 12-second delay before the integration refreshes state
 - Sensor data polls every 30 seconds
 - Authentication is handled automatically — enter your username and password once, the integration manages tokens, session expiry, and re-authentication
-- Changing your iStore password? Remove and re-add the integration, or update the password in your HA config entry
+- Changing your iStore password? Use **Reconfigure** on the integration (or the *Re-authenticate* prompt)
 - **Security:** Your iStore password is stored in Home Assistant's config entry (`.storage/core.config_entries`). This is HA's standard pattern for cloud integrations and is only accessible to the HA user. Back up your config securely and avoid sharing full config dumps on forums.
 
 ---
@@ -161,18 +171,18 @@ The integration follows Home Assistant's [CoordinatorEntity](https://developers.
 ```
 custom_components/istore_heatpump/
 ├── __init__.py         Entry point, device setup, platform forwarding
-├── api.py              iStore cloud API client (auth, RSA, 401 retry)
-├── config_flow.py      Setup wizard (username/password → auto-discover)
+├── api.py              iStore cloud API client (auth, RSA, re-login on 401/30000)
+├── config_flow.py      Setup, reauth and reconfigure (username/password → auto-discover)
 ├── options_flow.py     Post-setup thermodynamic parameter config
 ├── const.py            Domain name, config keys, tank volume defaults
 ├── coordinator.py      DataUpdateCoordinator (30s poll)
 ├── device.py           HA DeviceInfo from API attributes
 ├── sensor.py           Temperature sensors, thermodynamic calculations
-├── binary_sensor.py    10 on/off state sensors
+├── binary_sensor.py    11 on/off state sensors
 ├── switch.py           Power, Booster, Timer 1/2 toggles
 ├── select.py           Work mode selector
 ├── time.py             Timer schedule time inputs
-└── text.py             Device name editor
+└── text.py             Device name editor, v1 HH:MM timer text entities
 ```
 
 Architecture decisions are documented in `docs/decisions/`. See [ADR-001](docs/decisions/ADR-001-v2-architecture.md) for the v2.0 fork rationale and [ADR-002](docs/decisions/ADR-002-v2.1-security-and-quality.md) for v2.1 security hardening.
@@ -182,7 +192,9 @@ Architecture decisions are documented in `docs/decisions/`. See [ADR-001](docs/d
 | Command | Purpose |
 |---|---|
 | `ruff check custom_components/istore_heatpump/` | Lint |
-| `pytest tests/ -v` | Run unit tests (113 tests) |
+| `pytest tests/ -v` | Run unit tests (no Home Assistant needed) |
+| `pytest tests_ha -o asyncio_mode=auto -o pythonpath=.` | Flow/migration tests against real HA core (needs `pytest-homeassistant-custom-component`; Linux/macOS only) |
+| `python tools/live_auth_check.py` | Live login + forced re-login check against iStore (needs `ISTORE_USERNAME`/`ISTORE_PASSWORD`) |
 | `for f in custom_components/istore_heatpump/*.py; do python3 -m py_compile "$f"; done` | Syntax check |
 | `.forgejo/workflows/ci.yml` | CI pipeline (lint + test + syntax + manifest + pip-audit) |
 
