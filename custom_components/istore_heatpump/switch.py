@@ -120,6 +120,8 @@ class IStoreTimerSwitch(BaseIStoreSwitch):
         )
         super().__init__(coordinator, api)
         self._attr_icon = "mdi:timer"
+        # v1 unique_id format — keeps existing switch.istore_timer_1/2 entities
+        self._attr_unique_id += "_switch"
 
     async def async_turn_on(self):
         """Enable the timer — sets both On and Off flags."""

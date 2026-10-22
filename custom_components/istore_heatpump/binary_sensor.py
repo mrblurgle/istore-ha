@@ -11,6 +11,8 @@ BINARY_SENSORS = [
     ("4way_status", "PUB_WH.4WayStatus", "4 Way Valve", True),
     ("fan_status", "PUB_WH.FanSpeed", "Fan Status", True),
     ("defrost_status", "PUB_WH.DefrostStatus", "Defrost Status", True),
+    # v1 "Running State" (heat pump powered on); kept for existing dashboards
+    ("power_on", "WH.OnOff", "Power On", True),
     # Disabled by default: redundant with switch entities or duplicate readings
     ("compressor_status", "PUB_WH.CompressorStatus", "Compressor Status", False),
     ("timer1_on", "PRI_RE_WH.Timer1On", "Timer 1 Enabled", False),
@@ -18,6 +20,18 @@ BINARY_SENSORS = [
     ("timer2_on", "PRI_RE_WH.Timer2On", "Timer 2 Enabled", False),
     ("timer2_off", "PRI_RE_WH.Timer2Off", "Timer 2 Disabled", False),
 ]
+
+# v1 unique_id suffixes for sensors that existed before, so existing entities
+# keep their entity IDs and history. v1 "running_state" reported WH.OnOff (not
+# the compressor), so it maps to power_on rather than running_state.
+LEGACY_UNIQUE_ID_SUFFIX = {
+    "power_on": "running_state_wh_onoff",
+    "booster_state": "booster_pub_wh_booster",
+    "4way_status": "4_way_status_pub_wh_4waystatus",
+    "fan_status": "fan_status_pub_wh_fanspeed",
+    "defrost_status": "defrost_status_pub_wh_defroststatus",
+    "compressor_status": "compressor_status_pub_wh_compressorstatus",
+}
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -43,7 +57,8 @@ class IStoreBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self.key = key
         self.point = point
         self._attr_name = name
-        self._attr_unique_id = f"istore_{api.mdm_id}_{key}"
+        suffix = LEGACY_UNIQUE_ID_SUFFIX.get(key, key)
+        self._attr_unique_id = f"istore_{api.mdm_id}_{suffix}"
         self._attr_device_info = api.device_info
         self._attr_entity_registry_enabled_default = enabled
 
