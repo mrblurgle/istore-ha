@@ -5,8 +5,9 @@ import re
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
-from .api import iStoreApi
+from .api import iStoreApi, IStoreAuthError
 from .coordinator import iStoreCoordinator
 from .const import (DOMAIN, CONF_USERNAME, CONF_PASSWORD, CONF_ACCESS_TOKEN, CONF_PARENT_ID, CONF_MDM_ID, TANK_VOLUME_L)
 from .device import IStoreDevice
@@ -51,23 +52,33 @@ def _parse_tank_volume(attrib_data, mdm_id, model_name=None):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up iStore Heat Pump."""
-    username = entry.data[CONF_USERNAME]
-    password = entry.data[CONF_PASSWORD]
-    access_token = entry.data[CONF_ACCESS_TOKEN]
-    parent_id = entry.data[CONF_PARENT_ID]
-    mdm_id = entry.data[CONF_MDM_ID]
+    username = entry.data.get(CONF_USERNAME)
+    password = entry.data.get(CONF_PASSWORD)
+    if not username or not password:
+        # Entry migrated from v1 (token only) — HA starts the reauth flow
+        raise ConfigEntryAuthFailed("iStore username and password are required")
 
-    api = iStoreApi(username, password, access_token, parent_id, mdm_id, hass)
+    access_token = entry.data.get(CONF_ACCESS_TOKEN)
+    parent_id = entry.data.get(CONF_PARENT_ID)
+    mdm_id = entry.data.get(CONF_MDM_ID)
+
+    api = iStoreApi(username, password, access_token, parent_id, mdm_id, hass, entry)
 
     # Fetch device details for DeviceInfo
     try:
         api.arch_data = await api.get_architecture()
+    except IStoreAuthError as e:
+        await api.close()
+        raise ConfigEntryAuthFailed(str(e)) from e
     except Exception as e:
         _LOGGER.warning("Failed to fetch architecture for DeviceInfo: %s", e)
         api.arch_data = None
 
     try:
         api.attrib_data = await api.get_attributes()
+    except IStoreAuthError as e:
+        await api.close()
+        raise ConfigEntryAuthFailed(str(e)) from e
     except Exception as e:
         _LOGGER.warning("Failed to fetch attributes for DeviceInfo: %s", e)
         api.attrib_data = None
@@ -93,8 +104,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     else:
         _LOGGER.info("iStore: could not discover tank volume, defaulting to %s L", TANK_VOLUME_L)
 
-    coordinator = iStoreCoordinator(hass, api)
-    await coordinator.async_config_entry_first_refresh()
+    coordinator = iStoreCoordinator(hass, api, entry)
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except Exception:
+        await api.close()
+        raise
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
@@ -105,26 +120,30 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Register update listener for options changes
-    entry.async_on_unload(entry.add_update_listener(update_listener))
+    # Options changes reload via OptionsFlowWithReload. No update listener here:
+    # re-login writes the new token into entry.data and must not trigger a reload.
 
     return True
 
 
-async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)
-
-
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Migrate old entry."""
-    _LOGGER.warning(
-        "Cannot migrate config entry from version %s to 2. "
-        "The new version requires your iStore username and password. "
-        "Please delete and re-add the integration.",
-        config_entry.version,
-    )
-    return False
+    """Migrate old entry.
+
+    v1 entries hold only access_token/parent_id/mdm_id. Keep the entry (and its
+    entities) and let setup raise ConfigEntryAuthFailed, which starts the
+    reauth flow to collect the username and password.
+    """
+    if config_entry.version > 2:
+        return False
+
+    if config_entry.version == 1:
+        _LOGGER.info(
+            "Migrating iStore config entry from version 1 to 2; "
+            "Home Assistant will ask for your iStore username and password"
+        )
+        hass.config_entries.async_update_entry(config_entry, version=2)
+
+    return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):

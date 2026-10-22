@@ -1,0 +1,55 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "iStore Heat Pump",
+        "description": "Enter your iStore login credentials.\n\nThese are the same credentials you use to log in at https://home.istore.net.au",
+        "data": {
+          "username": "Email / Username",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate iStore",
+        "description": "Enter your iStore login credentials. They are stored so the integration can log in again automatically when its session expires.",
+        "data": {
+          "username": "Email / Username",
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Update iStore login",
+        "description": "Change the iStore username or password used by this integration.",
+        "data": {
+          "username": "Email / Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Login failed. Check your email and password.",
+      "cannot_connect": "Could not connect to iStore. Check your internet connection and try again."
+    },
+    "abort": {
+      "already_configured": "This iStore device is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "reconfigure_successful": "The iStore login was updated.",
+      "wrong_device": "These credentials belong to a different iStore heat pump than the one configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "iStore Heat Pump Options",
+        "description": "Configure parameters for thermodynamic calculations.\n\nThese values affect the estimated remaining hot water and shower time sensors.",
+        "data": {
+          "cold_water_temp": "Cold Mains Inlet Temperature (°C)",
+          "shower_flow_rate": "Shower Head Flow Rate (L/min)",
+          "shower_temp": "Target Shower Comfort Temperature (°C)",
+          "tempering_temp": "Tempering Valve Output Temperature (°C)",
+          "tank_volume": "Tank Volume (L) — 0 = auto-detect from device"
+        }
+      }
+    }
+  }
+}
