@@ -44,6 +44,12 @@ class _MockSelectEntity:
         pass
 
 
+# Text entity mock
+class _MockTextEntity:
+    def __init__(self, *args, **kwargs):
+        pass
+
+
 # DataUpdateCoordinator mock
 class _MockDataUpdateCoordinator:
     pass
@@ -84,6 +90,9 @@ _mock_ha_components_time.TimeEntity = _MockTimeEntity
 _mock_ha_components_select = MagicMock()
 _mock_ha_components_select.SelectEntity = _MockSelectEntity
 
+_mock_ha_components_text = MagicMock()
+_mock_ha_components_text.TextEntity = _MockTextEntity
+
 _mock_ha_helpers_update_coordinator = MagicMock()
 _mock_ha_helpers_update_coordinator.CoordinatorEntity = _MockCoordinatorEntity
 _mock_ha_helpers_update_coordinator.DataUpdateCoordinator = _MockDataUpdateCoordinator
@@ -107,7 +116,7 @@ sys.modules["homeassistant.components.switch"] = _mock_ha_components_switch
 sys.modules["homeassistant.components.time"] = _mock_ha_components_time
 sys.modules["homeassistant.components.select"] = _mock_ha_components_select
 sys.modules["homeassistant.components.number"] = MagicMock()
-sys.modules["homeassistant.components.text"] = MagicMock()
+sys.modules["homeassistant.components.text"] = _mock_ha_components_text
 sys.modules["homeassistant.helpers"] = MagicMock()
 sys.modules["homeassistant.helpers.update_coordinator"] = _mock_ha_helpers_update_coordinator
 sys.modules["homeassistant.helpers.device_registry"] = _mock_ha_helpers_device_registry
