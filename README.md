@@ -3,6 +3,15 @@
 A Home Assistant custom integration for iStore Hot Water System (R290).
 Provides full monitoring + control using the official iStore API. This integration requires the iStore Heat Pump system with the WiFi module installed and connected to the Univers EMS mobile app. Most iStore Hot Water Systems installed after November 2025 include the WiFi module.
 
+> **About this fork.** Maintained by [@mrblurgle](https://github.com/mrblurgle). It builds on the v2 rewrite in
+> [kungbernard/istore-ha#12](https://github.com/kungbernard/istore-ha/pull/12) and adds:
+> automatic re-login when the iStore session expires (HTTP 401 *or* the `code: 30000 "please sign in"` reply),
+> Re-authenticate and Reconfigure flows, in-place upgrade from v1 (access-token) installs with entity IDs kept,
+> and the v1 timer text entities restored. Upstream: [kungbernard/istore-ha](https://github.com/kungbernard/istore-ha).
+>
+> **Tip:** give Home Assistant its own iStore user. Logging in or out elsewhere with the same user can end
+> Home Assistant's session (it will log in again by itself, but separate users avoid the churn).
+
 ### Sample of Home Assistant Dashboard
 <img src="images/dashboard.png" height="400">
 
@@ -47,7 +56,7 @@ Temperature adjustment is intentionally disabled. Operating outside iStore's tes
 
 ### HACS (recommended)
 
-1. Add this repository as a custom repository in HACS
+1. In HACS, ⋮ → Custom repositories → add `https://github.com/mrblurgle/istore-ha` (type: Integration)
 2. Search for "iStore Heat Pump" in HACS and install
 3. Restart Home Assistant
 4. Go to Settings → Devices & Services → Add Integration → "iStore Heat Pump"
@@ -202,7 +211,7 @@ Architecture decisions are documented in `docs/decisions/`. See [ADR-001](docs/d
 
 ## Acknowledgments
 
-Built on work by [@kungbernard](https://github.com/kungbernard) (original API client), [@VeneficusMortis](https://github.com/VeneficusMortis) (authentication, device definition, timer controls), [@clutrz](https://github.com/clutrz) (batch timer writes, thermodynamic sensors, options flow), and [@phyzical](https://github.com/phyzical) (HACS structure).
+Fork maintained by [@mrblurgle](https://github.com/mrblurgle); v2 consolidation by [@drunkrhin0](https://github.com/drunkrhin0). Built on work by [@kungbernard](https://github.com/kungbernard) (original API client), [@VeneficusMortis](https://github.com/VeneficusMortis) (authentication, device definition, timer controls), [@clutrz](https://github.com/clutrz) (batch timer writes, thermodynamic sensors, options flow), and [@phyzical](https://github.com/phyzical) (HACS structure).
 
 ## Disclaimer
 
