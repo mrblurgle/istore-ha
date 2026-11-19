@@ -404,6 +404,40 @@ class TestParseTankVolume:
         )
         assert result is None
 
+    def test_istore_270l_model_code(self):
+        """Leading product code (015) must not be mistaken for the capacity."""
+        result = _parse_tank_volume(
+            {"data": {self.MDM: {}}}, self.MDM, model_name="PASHW015-270LD-FLO2-R290"
+        )
+        assert result == 270
+
+    def test_istore_180l_model_code(self):
+        """A 180L unit must not fall back to the 270L default."""
+        result = _parse_tank_volume(
+            {"data": {self.MDM: {}}}, self.MDM, model_name="PASHW008-180LD-NM-R290"
+        )
+        assert result == 180
+
+    def test_refrigerant_code_not_mistaken_for_capacity(self):
+        """R290 is the refrigerant; the capacity is the number followed by L."""
+        result = _parse_tank_volume(
+            {"data": {self.MDM: {}}}, self.MDM, model_name="R290-270L"
+        )
+        assert result == 270
+
+    def test_model_name_l_with_space(self):
+        result = _parse_tank_volume(
+            {"data": {self.MDM: {}}}, self.MDM, model_name="180 L"
+        )
+        assert result == 180
+
+    def test_model_name_without_capacity_rejected(self):
+        """A code with no L-suffixed number and no bare number gives no volume."""
+        result = _parse_tank_volume(
+            {"data": {self.MDM: {}}}, self.MDM, model_name="PASHW015-R290"
+        )
+        assert result is None
+
     def test_none_attrib_data(self):
         result = _parse_tank_volume(None, self.MDM)
         assert result is None

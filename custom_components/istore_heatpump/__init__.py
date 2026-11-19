@@ -38,11 +38,17 @@ def _parse_tank_volume(attrib_data, mdm_id, model_name=None):
                 except (ValueError, TypeError):
                     pass
 
-    # Try model name pattern (e.g., "R290-270L", "340L", "270")
+    # Try model name pattern. iStore model codes lead with a product code and
+    # end with the refrigerant, e.g. "PASHW015-270LD-FLO2-R290", so the first
+    # number is not the capacity. Prefer a number followed by L ("270L",
+    # "180 L"), and accept a bare number only when it is the whole name ("270").
     if model_name:
-        match = re.search(r"(\d+)\s*L?", str(model_name), re.IGNORECASE)
-        if match:
-            vol = int(match.group(1))
+        name = str(model_name).strip()
+        candidates = [m.group(1) for m in re.finditer(r"(\d+)\s*L", name, re.IGNORECASE)]
+        if not candidates and name.isdigit():
+            candidates = [name]
+        for raw in candidates:
+            vol = int(raw)
             if 50 <= vol <= 500:
                 return vol
 
